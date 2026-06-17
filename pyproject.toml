@@ -1,0 +1,10 @@
+[project]
+name = "medical-trials-data-extractor"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.137.1",
+    "psycopg2-binary>=2.9.12",
+    "ruff>=0.15.17",
+    "sqlmodel>=0.0.38",
+]
