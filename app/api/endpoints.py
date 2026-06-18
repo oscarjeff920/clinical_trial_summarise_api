@@ -5,6 +5,7 @@ from docx import Document
 from app.api.app import medical_docs_api
 from app.api.models import SummariseTablesOutput
 from app.services.docx_crawler.run_docx_extraction import run_docx_content_extraction
+from app.services.docx_crawler.translate.exceptions import CompoundNotFoundError
 
 
 @medical_docs_api.get("/")
@@ -30,9 +31,16 @@ def summarise(
             status_code=415, detail="Uploaded file needs to be in .docx format"
         )
 
-    docx_document = Document(file.file)
-    summarised_content = run_docx_content_extraction(
-        docx_document, compound_1, compound_2
-    )
+    try:
+        docx_document = Document(file.file)
+    except Exception as ex:
+        raise HTTPException(status_code=415, detail=f"Passed file is not a readable .docx document: {ex}")
+
+    try:
+        summarised_content = run_docx_content_extraction(
+            docx_document, compound_1, compound_2
+        )
+    except CompoundNotFoundError as comp_error:
+        raise HTTPException(status_code=422, detail=str(comp_error))
 
     return summarised_content
