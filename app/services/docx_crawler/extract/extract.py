@@ -126,32 +126,43 @@ def find_sae_tables(document: Document):
     return matches
 
 
+def build_cell(compound_name: str, cell_text: str) -> dict:
+    """
+    "1 (33%)"  -> count=1, int_percent=33, percent="33%"
+    "0" or ""  -> count=0, int_percent=0,  percent=None
+    "3 (16 %)" -> count=3, int_percent=16, percent="16%"  (internal space dropped)
+    """
+    text = (cell_text or "").strip()
+    if not text or text == "0":
+        return {"compound": compound_name, "count": 0, "int_percent": 0, "percent": None}
+    if "(" in text:
+        count_part, _, rest = text.partition("(")
+        percent = rest.replace(")", "").replace(" ", "").strip()   # "33%"
+        num = percent.rstrip("%")
+        int_percent = round(float(num)) if num else 0
+        return {"compound": compound_name, "count": first_int(count_part),
+                "int_percent": int_percent, "percent": percent}
+    # non-zero count, no bracket: count present, but no percentage to extract
+    return {"compound": compound_name, "count": first_int(text), "int_percent": 0, "percent": None}
+
+
 def extract_found_tables_into_json(found: list) -> dict:
     extracted_data = {"tables": []}
 
     for match in found:
-        # FIX: use the keys find_sae_tables actually emits. The previous chain
-        # looked for "table_description"/"raw_title" (neither exists) and only
-        # worked by falling through to "table_name".
         title = match.get("table_name") or match.get("title", "")
-
         table_data = {
             "table_number": match.get("table_number", ""),
             "table_title": title,
-            "compounds_data": [],
+            "term_data": [],
+            "total_with_SAE": [],
         }
 
         table = match["table"]
-        col_to_compound = {}
-        compounds_list = []
+        row_to_term, terms_list, totals_row = {}, [], None
 
-        # -----------------------------------------------------------------
-        # FIX: locate the header row by finding the "Preferred Term" cell,
-        # instead of assuming it's row 0. Also remember which column the term
-        # lives in rather than hardcoding column 0.
-        # -----------------------------------------------------------------
-        header_idx = None
-        term_col = 0
+        # locate the header row + the term column
+        header_idx, term_col = None, 0
         for r_idx, row in enumerate(table.rows):
             for c_idx, cell in enumerate(row.cells):
                 if "preferred term" in cell.text.strip().lower():
@@ -159,55 +170,47 @@ def extract_found_tables_into_json(found: list) -> dict:
                     break
             if header_idx is not None:
                 break
-
-        # Fallback: first non-empty row is the header (old behaviour).
-        if header_idx is None:
+        if header_idx is None:  # fallback: first non-empty row is the header
             for r_idx, row in enumerate(table.rows):
                 if any(cell.text.strip() for cell in row.cells):
                     header_idx, term_col = r_idx, 0
                     break
-
         if header_idx is None:
             continue  # genuinely empty table
 
-        # ---------------------------------------------------------------------
-        # HEADER ROW: every column except the term column is a compound.
-        # ---------------------------------------------------------------------
-        header_cells = [cell.text.strip() for cell in table.rows[header_idx].cells]
-        for col_idx, header_text in enumerate(header_cells):
-            if col_idx == term_col or not header_text:
+        # TERM COLUMN: walk DOWN the term column to find term rows + the totals row
+        term_column_cells = [cell.text.strip() for cell in table.columns[term_col].cells]
+        for row_pos, label in enumerate(term_column_cells):
+            if row_pos == header_idx or not label:
                 continue
-            compound_entry = {
-                "compound": header_text,  # 'Placebo' / 'Compound X' as written
-                "total_with_SAE": 0,
-                "terms": [],
-            }
-            compounds_list.append(compound_entry)
-            col_to_compound[col_idx] = compound_entry
-
-        # ---------------------------------------------------------------------
-        # DATA ROWS: classify each row after the header as totals or term row.
-        # ---------------------------------------------------------------------
-        for row in table.rows[header_idx + 1:]:
-            cells = [cell.text.strip() for cell in row.cells]
-            if term_col >= len(cells) or not cells[term_col]:
-                continue  # skip structurally empty rows
-
-            label = cells[term_col]
-
             if is_totals_row(label):
-                for col_idx, entry in col_to_compound.items():
-                    if col_idx < len(cells):
-                        entry["total_with_SAE"] = first_int(cells[col_idx])
+                totals_row = row_pos
             else:
-                for col_idx, entry in col_to_compound.items():
-                    if col_idx < len(cells):
-                        count, percent = parse_cell_value(cells[col_idx])
-                        entry["terms"].append(
-                            {"term": label, "count": count, "percent": percent}
-                        )
+                term_entry = {"term": label, "compounds": []}
+                terms_list.append(term_entry)
+                row_to_term[row_pos] = term_entry
 
-        table_data["compounds_data"] = compounds_list
+        # COMPOUND COLUMNS: every column except the term column is one compound
+        for col_idx in range(len(table.columns)):
+            if col_idx == term_col:
+                continue
+            cells = [cell.text.strip() for cell in table.columns[col_idx].cells]
+            if header_idx >= len(cells) or not cells[header_idx]:
+                continue
+            compound_name = cells[header_idx]
+            for row_pos, cell_text in enumerate(cells):
+                if row_pos == header_idx:
+                    continue
+                if totals_row is not None and row_pos == totals_row:
+                    table_data["total_with_SAE"].append(
+                        {"compound": compound_name, "count": first_int(cell_text)}
+                    )
+                elif row_pos in row_to_term:
+                    row_to_term[row_pos]["compounds"].append(
+                        build_cell(compound_name, cell_text)
+                    )
+
+        table_data["term_data"] = terms_list
         extracted_data["tables"].append(table_data)
 
     return extracted_data
