@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from app.services.docx_crawler.translate.config import OUTPUT_SENTENCES
+from services.docx_crawler.translate.config import OUTPUT_SENTENCES
 
 
 # ---- pure helpers -------------------------------------------------------
@@ -75,7 +75,7 @@ def generate_per_term_sentence(term_data: dict, compounds: list[str]) -> str:
 
 def translate_parsed_docx_content(
     parsed_content: dict, compounds: list[str]
-) -> list[dict]:
+) -> dict[str, list[dict]]:
     if len(compounds) != 2:
         raise ValueError(
             f"exactly two compounds are required, got {len(compounds)}: {compounds}"
@@ -103,4 +103,4 @@ def translate_parsed_docx_content(
                 },
             }
         )
-    return translated_tables
+    return {"tables": translated_tables}
