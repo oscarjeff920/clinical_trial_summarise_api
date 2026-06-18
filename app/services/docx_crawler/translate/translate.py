@@ -5,6 +5,7 @@ from app.services.docx_crawler.translate.config import OUTPUT_SENTENCES
 
 # ---- pure helpers -------------------------------------------------------
 
+
 def select_compounds(rows: list[dict], compounds: list[str]) -> list[dict]:
     """Return the rows for the requested compounds, in request order.
     Raises if any requested compound is absent."""
@@ -39,7 +40,9 @@ def fill_template(template: str, substitutions: dict) -> str:
     return template.format(**substitutions)
 
 
-def select_per_term_template(comp_a: dict, comp_b: dict, templates: dict) -> Tuple[str, list[dict]]:
+def select_per_term_template(
+    comp_a: dict, comp_b: dict, templates: dict
+) -> Tuple[str, list[dict]]:
     """Pick the sentence template and order the compounds so the rendered
     sentence is truthful (higher % first for 'both', non-zero first for 'one')."""
     a, b = comp_a["int_percent"], comp_b["int_percent"]
@@ -56,6 +59,7 @@ def select_per_term_template(comp_a: dict, comp_b: dict, templates: dict) -> Tup
 
 # ---- sentence generators ------------------------------------------------
 
+
 def generate_totals_sentence(total_with_sae: list[dict], compounds: list[str]) -> str:
     key_data = select_compounds(total_with_sae, compounds)
     return fill_template(OUTPUT_SENTENCES["totals"], base_substitutions(key_data))
@@ -63,27 +67,40 @@ def generate_totals_sentence(total_with_sae: list[dict], compounds: list[str]) -
 
 def generate_per_term_sentence(term_data: dict, compounds: list[str]) -> str:
     comp_a, comp_b = select_compounds(term_data["compounds"], compounds)
-    template, ordered = select_per_term_template(comp_a, comp_b, OUTPUT_SENTENCES["per_term"])
+    template, ordered = select_per_term_template(
+        comp_a, comp_b, OUTPUT_SENTENCES["per_term"]
+    )
     return fill_template(template, per_term_substitutions(ordered, term_data["term"]))
 
 
-def translate_parsed_docx_content(parsed_content: dict, compounds: list[str]) -> list[dict]:
+def translate_parsed_docx_content(
+    parsed_content: dict, compounds: list[str]
+) -> list[dict]:
     if len(compounds) != 2:
-        raise ValueError(f"exactly two compounds are required, got {len(compounds)}: {compounds}")
+        raise ValueError(
+            f"exactly two compounds are required, got {len(compounds)}: {compounds}"
+        )
 
     translated_tables = []
     for table in parsed_content.get("tables", []):
         per_term = [
-            {"term": term["term"], "per_term_sentence": generate_per_term_sentence(term, compounds)}
+            {
+                "term": term["term"],
+                "per_term_sentence": generate_per_term_sentence(term, compounds),
+            }
             for term in table.get("term_data", [])
         ]
-        translated_tables.append({
-            "table_number": table.get("table_number"),
-            "table_title": table.get("table_title"),
-            "selected_compounds": compounds,
-            "summary_sentences": {
-                "totals_sentence": generate_totals_sentence(table.get("total_with_SAE", []), compounds),
-                "per_term_sentences": per_term,
-            },
-        })
+        translated_tables.append(
+            {
+                "table_number": table.get("table_number"),
+                "table_title": table.get("table_title"),
+                "selected_compounds": compounds,
+                "summary_sentences": {
+                    "totals_sentence": generate_totals_sentence(
+                        table.get("total_with_SAE", []), compounds
+                    ),
+                    "per_term_sentences": per_term,
+                },
+            }
+        )
     return translated_tables
