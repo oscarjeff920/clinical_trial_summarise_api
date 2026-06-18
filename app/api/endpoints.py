@@ -22,3 +22,5 @@ def summarise(
     if not file.filename.lower().endswith(".docx"):
         raise HTTPException(status_code=415, detail="Uploaded file needs to be in .docx format")
 
+    docx_document = Document(file.file)
+    return main(docx_document, compound_1, compound_2)
