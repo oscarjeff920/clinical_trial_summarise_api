@@ -3,22 +3,16 @@ import json
 from app.services.docx_crawler.translate.config import OUTPUT_SENTENCES
 
 
-def extract_key_data_for_totals_sentence(compounds_data: dict, compounds: list):
-    indexed_compound_data = {c["compound"]: c for c in compounds_data}
-    compounds_summary = []
-    
+def extract_key_data_for_totals_sentence(total_with_sae: list[dict], compounds: list[str]) -> list[dict]:
+    indexed = {entry["compound"]: entry for entry in total_with_sae}
+    summary = []
     for compound in compounds:
-        compound_data = indexed_compound_data.get(compound)
-        if compound_data is None:
+        entry = indexed.get(compound)
+        if entry is None:
             print(f"compound: {compound} not found in the data..")
             continue
-        else:
-            key_data = {
-                "compound": compound_data['compound'], "count": compound_data['total_with_SAE']
-            }
-            compounds_summary.append(key_data)
-
-    return compounds_summary
+        summary.append({"compound": entry["compound"], "count": entry["count"]})
+    return summary
 
 
 def fill_in_totals_sentence(key_data: list[dict], sentence_template: str) -> str:
@@ -30,42 +24,41 @@ def fill_in_totals_sentence(key_data: list[dict], sentence_template: str) -> str
 
     return sentence_template.format(**substitutions)
 
-def generate_totals_sentence(compounds_data: dict, compounds: list[str]):
-    totals_sentence_template = OUTPUT_SENTENCES.get("totals")
 
-    extracted_key_data = extract_key_data_for_totals_sentence(compounds_data, compounds)
-
-    completed_totals_sentence = fill_in_totals_sentence(extracted_key_data, totals_sentence_template)
-
-    return completed_totals_sentence
+def generate_totals_sentence(total_with_sae: list[dict], compounds: list[str]) -> str:
+    template = OUTPUT_SENTENCES.get("totals")
+    key_data = extract_key_data_for_totals_sentence(total_with_sae, compounds)
+    return fill_in_totals_sentence(key_data, template)
 
 
-
-def translate_parsed_docx_content(parsed_content: dict, compounds: list):
+def translate_parsed_docx_content(parsed_content: dict, compounds: list[str]) -> list[dict]:
     translated_tables = []
     parsed_tables = parsed_content.get("tables", [])
 
     for table in parsed_tables:
-        transformed_table_content = {
-            "table_number": table.get("table_number"),
-            "table_title": table.get("table_title")
-        }
+        total_with_sae = table.get("total_with_SAE", [])
+        term_data = table.get("term_data", [])
 
-        compounds_data = table.get("compounds_data")
         summary_sentences = {
-            "totals_sentence": generate_totals_sentence(compounds_data, compounds),
-            "per-term_sentences": []
+            "totals_sentence": generate_totals_sentence(total_with_sae, compounds),
+            "per_term_sentences": [],
         }
 
-
-        for term in compounds_data["terms"]:
+        for term in term_data:
             term_output = {"term": term["term"]}
+            # TODO (yours): build the per-term sentence here.
+            #   - pull the two selected compounds' int_percent for this term
+            #   - pick the branch (none / equal / one / both) -- check none before equal
+            #   - fill OUTPUT_SENTENCES["per-term"][branch] with .format
+            summary_sentences["per_term_sentences"].append(term_output)
 
+        translated_tables.append({
+            "table_number": table.get("table_number"),
+            "table_title": table.get("table_title"),
+            "selected_compounds": compounds,
+            "summary_sentences": summary_sentences,
+        })
 
-        print(f"trans_tables: {transformed_table_content}")
-        print(f"sum_sent: {summary_sentences}\n\n")
+        print(f"translated_tables: {translated_tables}")
 
-
-
-
-    return 1
+    return translated_tables
