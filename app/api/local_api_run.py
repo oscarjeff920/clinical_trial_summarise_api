@@ -10,5 +10,5 @@ if __name__ == "__main__":
         "__main__:medical_docs_api",
         host=api_config.API_HOST,
         port=api_config.API_PORT,
-        reload=True
+        reload=True,
     )
