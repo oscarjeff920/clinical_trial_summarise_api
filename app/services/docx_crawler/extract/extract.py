@@ -1,6 +1,6 @@
 import re
 
-from docx import Document
+from docx.document import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
 from docx.oxml.text.paragraph import CT_P
@@ -199,5 +199,5 @@ def extract_found_tables_into_json(found: list[dict]) -> dict:
     return {"tables": tables}
 
 
-def parse_docx_file(file_path: str) -> dict:
-    return extract_found_tables_into_json(find_sae_tables(Document(file_path)))
+def parse_docx_file(file: Document) -> dict:
+    return extract_found_tables_into_json(find_sae_tables(file))
