@@ -213,18 +213,8 @@ def extract_found_tables_into_json(found: list) -> dict:
     return extracted_data
 
 
-def extract_file_name(file_path: str):
-    return os.path.splitext(os.path.basename(file_path))[0]
-
-
+# Top level function:
 def parse_docx_file(file_path: str):
     doc = Document(file_path)
     found = find_sae_tables(doc)
     return extract_found_tables_into_json(found)
-
-
-if __name__ == "__main__":
-    file_path = "mock_docx_files/client1_ae copy.docx"
-    parsed_json = parse_docx_file(file_path)
-    with open("parsed_data.json", "w") as f:
-        json.dump(parsed_json, f)
