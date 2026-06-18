@@ -1,7 +1,7 @@
 from fastapi import UploadFile, Form, HTTPException, File
 
-from app.api.app import medical_docs_api
-from app.api.models import SummariseTablesOutput
+from api.app import medical_docs_api
+from api.models import SummariseTablesOutput
 
 
 @medical_docs_api.get("/")
