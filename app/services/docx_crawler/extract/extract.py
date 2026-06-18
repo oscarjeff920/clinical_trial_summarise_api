@@ -1,5 +1,7 @@
 import re
 
+from decimal import Decimal
+
 from docx.document import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
@@ -67,8 +69,8 @@ def build_cell(compound_name: str, cell_text: str) -> dict:
         return {
             "compound": compound_name,
             "count": 0,
-            "int_percent": 0,
-            "percent": None,
+            "percent": 0,
+            "percent_str": None,
         }
     if "(" in text:
         count_part, _, rest = text.partition("(")
@@ -77,15 +79,15 @@ def build_cell(compound_name: str, cell_text: str) -> dict:
         return {
             "compound": compound_name,
             "count": first_int(count_part),
-            "int_percent": round(float(num)) if num else 0,
-            "percent": percent,
+            "percent": Decimal(num) if num else 0,
+            "percent_str": percent,
         }
     # non-zero count, no bracket: count present, but no percentage to extract
     return {
         "compound": compound_name,
         "count": first_int(text),
-        "int_percent": 0,
-        "percent": None,
+        "percent": 0,
+        "percent_str": None,
     }
 
 

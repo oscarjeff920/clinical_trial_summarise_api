@@ -31,8 +31,8 @@ def per_term_substitutions(key_data: list[dict], term: str) -> dict:
     subs = base_substitutions(key_data)
     subs["T"] = term
     for index, compound in enumerate(key_data):
-        if compound["percent"] is not None:
-            subs[f"C{index + 1}%"] = compound["percent"]
+        if compound["percent_str"] is not None:
+            subs[f"C{index + 1}%"] = compound["percent_str"]
     return subs
 
 
@@ -45,7 +45,7 @@ def select_per_term_template(
 ) -> Tuple[str, list[dict]]:
     """Pick the sentence template and order the compounds so the rendered
     sentence is truthful (higher % first for 'both', non-zero first for 'one')."""
-    a, b = comp_a["int_percent"], comp_b["int_percent"]
+    a, b = comp_a["percent"], comp_b["percent"]
 
     if a == b:
         return templates["none"] if a == 0 else templates["equal"], [comp_a, comp_b]
