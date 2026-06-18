@@ -47,24 +47,7 @@ def generate_totals_sentence(total_with_sae: list[dict], compounds: list[str]) -
     substitutions = base_generate_substitutions(key_data)
     return fill_in_template_string_with_substitutions(template, substitutions)
 
-
-def generate_per_term_sentence(term_data: dict, compounds: list[str]):
-    indexed = {entry["compound"]: entry for entry in term_data["compounds"]}
-
-    selected_compounds = []
-    for idx, compound in enumerate(compounds):
-        if compound in indexed:
-            selected_compounds.append(indexed[compound].copy())
-
-    number_of_selected_compounds = len(selected_compounds)
-    if number_of_selected_compounds != 2:
-        raise IndexError(
-            f"Two selected compounds are expected, only found {number_of_selected_compounds}: {selected_compounds}"
-        )
-
-    per_term_sentences = OUTPUT_SENTENCES.get("per_term")
-
-    comp_a, comp_b = selected_compounds[0], selected_compounds[1]
+def order_compounds_and_select_per_term_sentence(comp_a: dict, comp_b: dict, per_term_sentences: dict):
     comps = [comp_a, comp_b]
     if comp_a["int_percent"] == comp_b["int_percent"]:
         if comp_a["int_percent"] == 0:
@@ -87,7 +70,27 @@ def generate_per_term_sentence(term_data: dict, compounds: list[str]):
     else:
         raise ValueError
 
-    substitutions = generate_per_term_substitutions(comps, term_data["term"])
+    return per_term_sentence_template, comps
+    
+    
+def generate_per_term_sentence(term_data: dict, compounds: list[str]):
+    indexed = {entry["compound"]: entry for entry in term_data["compounds"]}
+
+    selected_compounds = []
+    for idx, compound in enumerate(compounds):
+        if compound in indexed:
+            selected_compounds.append(indexed[compound].copy())
+
+    number_of_selected_compounds = len(selected_compounds)
+    if number_of_selected_compounds != 2:
+        raise IndexError(
+            f"Two selected compounds are expected, only found {number_of_selected_compounds}: {selected_compounds}"
+        )
+
+    comp_a, comp_b = selected_compounds
+    per_term_sentence_template, ordered_compounds = order_compounds_and_select_per_term_sentence(comp_a, comp_b, OUTPUT_SENTENCES.get("per_term"))
+
+    substitutions = generate_per_term_substitutions(ordered_compounds, term_data["term"])
     completed_sentence = fill_in_template_string_with_substitutions(
         per_term_sentence_template, substitutions
     )
