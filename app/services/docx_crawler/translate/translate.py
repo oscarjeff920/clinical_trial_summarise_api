@@ -9,11 +9,11 @@ from app.services.docx_crawler.translate.config import OUTPUT_SENTENCES
 def select_compounds(rows: list[dict], compounds: list[str]) -> list[dict]:
     """Return the rows for the requested compounds, in request order.
     Raises if any requested compound is absent."""
-    indexed = {row["compound"]: row for row in rows}
-    missing = [c for c in compounds if c not in indexed]
+    indexed = {row["compound"].lower(): row for row in rows}
+    missing = [c for c in compounds if c.lower() not in indexed]
     if missing:
         raise ValueError(f"compounds not found in table data: {missing}")
-    return [indexed[c] for c in compounds]
+    return [indexed[c.lower()] for c in compounds]
 
 
 def base_substitutions(key_data: list[dict]) -> dict:
