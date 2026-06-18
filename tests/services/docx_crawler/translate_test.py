@@ -10,6 +10,7 @@ from app.services.docx_crawler.translate.translate import (
     translate_parsed_docx_content,
     OUTPUT_SENTENCES,
 )
+from app.services.docx_crawler.translate.exceptions import CompoundNotFoundError
 
 
 def cell(name, count, int_percent, percent):
@@ -41,7 +42,7 @@ def test_select_compounds_with_odd_casing_matches_table_compound():
 
 def test_select_compounds_raises_on_missing_compound():
     rows = [cell("Placebo", 1, 33, "33%")]
-    with pytest.raises(ValueError, match="not found"):
+    with pytest.raises(CompoundNotFoundError, match="not found"):
         select_compounds(rows, ["Placebo", "Compound Z"])
 
 

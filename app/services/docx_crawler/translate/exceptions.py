@@ -1,0 +1,2 @@
+class CompoundNotFoundError(ValueError):
+    pass

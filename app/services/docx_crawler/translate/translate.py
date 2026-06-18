@@ -1,6 +1,7 @@
 from typing import Tuple
 
 from app.services.docx_crawler.translate.config import OUTPUT_SENTENCES
+from app.services.docx_crawler.translate.exceptions import CompoundNotFoundError
 
 
 # ---- pure helpers -------------------------------------------------------
@@ -12,7 +13,7 @@ def select_compounds(rows: list[dict], compounds: list[str]) -> list[dict]:
     indexed = {row["compound"].lower(): row for row in rows}
     missing = [c for c in compounds if c.lower() not in indexed]
     if missing:
-        raise ValueError(f"compounds not found in table data: {missing}")
+        raise CompoundNotFoundError(f"Compound/s not found in table data: {missing}")
     return [indexed[c.lower()] for c in compounds]
 
 
