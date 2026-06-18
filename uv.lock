@@ -126,6 +126,10 @@ source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "python-docx" },
+]
+
+[package.dev-dependencies]
+dev = [
     { name = "ruff" },
 ]
 
@@ -133,8 +137,10 @@ dependencies = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.137.1" },
     { name = "python-docx", specifier = ">=1.2.0" },
-    { name = "ruff", specifier = ">=0.15.17" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ruff", specifier = ">=0.15.17" }]
 
 [[package]]
 name = "pydantic"
