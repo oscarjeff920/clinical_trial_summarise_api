@@ -115,6 +115,11 @@ def read_term_column(table: Table, term_col: int, header_idx: int) -> tuple[dict
             terms_by_row[row_pos] = label
     return terms_by_row, totals_row
 
+def compound_columns(table: Table, header_idx: int, term_col: int) -> list[tuple[int, str]]:
+    """(col_idx, compound_name) for every non-term column with a header label, in order."""
+    header_cells = [c.text.strip() for c in table.rows[header_idx].cells]
+    return [(i, name) for i, name in enumerate(header_cells) if i != term_col and name]
+
 
 def extract_table(table: Table, table_number: str, table_title: str) -> dict | None:
     """Build one term-first table dict, or None if the table has no header."""
@@ -122,27 +127,53 @@ def extract_table(table: Table, table_number: str, table_title: str) -> dict | N
     if header is None:
         return None
     header_idx, term_col = header
+    cols = compound_columns(table, header_idx, term_col)
 
-    terms_by_row, totals_row = read_term_column(table, term_col, header_idx)
-    term_entries = {row_pos: {"term": label, "compounds": []}
-                    for row_pos, label in terms_by_row.items()}
-    total_with_sae = []
-
-    for col_idx in range(len(table.columns)):
-        if col_idx == term_col:
+    term_data, total_with_sae = [], []
+    for row in table.rows[header_idx + 1:]:
+        cells = [c.text.strip() for c in row.cells]
+        if term_col >= len(cells) or not cells[term_col]:
             continue
-        cells = [c.text.strip() for c in table.columns[col_idx].cells]
-        if header_idx >= len(cells) or not cells[header_idx]:
-            continue
-        compound_name = cells[header_idx]
-        for row_pos, cell_text in enumerate(cells):
-            if totals_row is not None and row_pos == totals_row:
-                total_with_sae.append({"compound": compound_name, "count": first_int(cell_text)})
-            elif row_pos in term_entries:
-                term_entries[row_pos]["compounds"].append(build_cell(compound_name, cell_text))
+        label = cells[term_col]
+        if is_totals_row(label):
+            for col_idx, name in cols:
+                if col_idx < len(cells):
+                    total_with_sae.append({"compound": name, "count": first_int(cells[col_idx])})
+        else:
+            compounds = [build_cell(name, cells[col_idx]) for col_idx, name in cols if col_idx < len(cells)]
+            term_data.append({"term": label, "compounds": compounds})
 
     return {"table_number": table_number, "table_title": table_title,
-            "term_data": list(term_entries.values()), "total_with_SAE": total_with_sae}
+            "term_data": term_data, "total_with_SAE": total_with_sae}
+
+
+# def extract_table(table: Table, table_number: str, table_title: str) -> dict | None:
+#     """Build one term-first table dict, or None if the table has no header."""
+#     header = locate_header(table)
+#     if header is None:
+#         return None
+#     header_idx, term_col = header
+#
+#     terms_by_row, totals_row = read_term_column(table, term_col, header_idx)
+#     term_entries = {row_pos: {"term": label, "compounds": []}
+#                     for row_pos, label in terms_by_row.items()}
+#     total_with_sae = []
+#
+#     for col_idx in range(len(table.columns)):
+#         if col_idx == term_col:
+#             continue
+#         cells = [c.text.strip() for c in table.columns[col_idx].cells]
+#         if header_idx >= len(cells) or not cells[header_idx]:
+#             continue
+#         compound_name = cells[header_idx]
+#         for row_pos, cell_text in enumerate(cells):
+#             if totals_row is not None and row_pos == totals_row:
+#                 total_with_sae.append({"compound": compound_name, "count": first_int(cell_text)})
+#             elif row_pos in term_entries:
+#                 term_entries[row_pos]["compounds"].append(build_cell(compound_name, cell_text))
+#
+#     return {"table_number": table_number, "table_title": table_title,
+#             "term_data": list(term_entries.values()), "total_with_SAE": total_with_sae}
 
 
 def extract_found_tables_into_json(found: list[dict]) -> dict:
