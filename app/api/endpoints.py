@@ -31,6 +31,8 @@ def summarise(
         )
 
     docx_document = Document(file.file)
-    summarised_content = run_docx_content_extraction(docx_document, compound_1, compound_2)
+    summarised_content = run_docx_content_extraction(
+        docx_document, compound_1, compound_2
+    )
 
     return summarised_content
