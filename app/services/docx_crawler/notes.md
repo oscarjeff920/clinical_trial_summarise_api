@@ -34,7 +34,7 @@ for example, using `client1_ae.docx` we want it looking like:
   ],
   "table_title": "Summary of Serious Adverse Events",
   "table_number": "2.1.1",
-  "sentences": {
+  "summary_sentences": {
     "totals_sentence": "A total of 3 participants received Placebo, and a total of 19 participants received Compound X.",
     "per-term_sentences": [
       "More participants who received Placebo (33%) experienced Seizure compared to Compound X (16%).",
