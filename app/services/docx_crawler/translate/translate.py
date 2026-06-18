@@ -17,9 +17,7 @@ def extract_key_data_for_totals_sentence(
     return summary
 
 
-def base_generate_substitutions(
-    key_data: list[dict]
-) -> dict:
+def base_generate_substitutions(key_data: list[dict]) -> dict:
     substitutions = {}
     for index, compound in enumerate(key_data):
         n = index + 1
@@ -29,9 +27,7 @@ def base_generate_substitutions(
     return substitutions
 
 
-def generate_per_term_substitutions(
-    key_data: list[dict], term: str
-) -> dict:
+def generate_per_term_substitutions(key_data: list[dict], term: str) -> dict:
     substitutions = base_generate_substitutions(key_data)
     substitutions["T"] = term
     for index, compound in enumerate(key_data):
@@ -55,34 +51,46 @@ def generate_totals_sentence(total_with_sae: list[dict], compounds: list[str]) -
 def generate_per_term_sentence(term_data: dict, compounds: list[str]):
     indexed = {entry["compound"]: entry for entry in term_data["compounds"]}
 
-    selected_compounds = [{"compound": compound} for compound in compounds]
+    selected_compounds = []
     for idx, compound in enumerate(compounds):
         if compound in indexed:
             selected_compounds.append(indexed[compound].copy())
 
-    print(f"selected comps: {selected_compounds}")
+    number_of_selected_compounds = len(selected_compounds)
+    if number_of_selected_compounds != 2:
+        raise IndexError(
+            f"Two selected compounds are expected, only found {number_of_selected_compounds}: {selected_compounds}"
+        )
 
-    per_term_sentences = OUTPUT_SENTENCES.get("per-term")
+    per_term_sentences = OUTPUT_SENTENCES.get("per_term")
 
     comp_a, comp_b = selected_compounds[0], selected_compounds[1]
     comps = [comp_a, comp_b]
-    if comp_a["int_percent"] > 0 and comp_b["int_percent"] > 0:
-        per_term_sentence_template = per_term_sentences.get("both")
-    elif comp_a["int_percent"] == comp_b["int_percent"]:
+    if comp_a["int_percent"] == comp_b["int_percent"]:
         if comp_a["int_percent"] == 0:
             per_term_sentence_template = per_term_sentences.get("none")
         else:
             per_term_sentence_template = per_term_sentences.get("equal")
+
+    elif comp_a["int_percent"] > 0 and comp_b["int_percent"] > 0:
+        per_term_sentence_template = per_term_sentences.get("both")
+        if comp_a["int_percent"] < comp_b["int_percent"]:
+            comps = [comp_b, comp_a]
+
     elif comp_a["int_percent"] == 0 and comp_b["int_percent"] > 0:
         per_term_sentence_template = per_term_sentences.get("one")
         comps = [comp_b, comp_a]
+
     elif comp_a["int_percent"] > 0 and comp_b["int_percent"] == 0:
         per_term_sentence_template = per_term_sentences.get("one")
+
     else:
         raise ValueError
 
-    substitutions = generate_per_term_substitutions(comps, term_data['term'])
-    completed_sentence = fill_in_template_string_with_substitutions(per_term_sentence_template, substitutions)
+    substitutions = generate_per_term_substitutions(comps, term_data["term"])
+    completed_sentence = fill_in_template_string_with_substitutions(
+        per_term_sentence_template, substitutions
+    )
 
     return completed_sentence
 
@@ -107,7 +115,7 @@ def translate_parsed_docx_content(
 
             term_output = {
                 "term": term["term"],
-                "per-term_sentence": generated_per_term_sentence,
+                "per_term_sentence": generated_per_term_sentence,
             }
 
             summary_sentences["per_term_sentences"].append(term_output)
