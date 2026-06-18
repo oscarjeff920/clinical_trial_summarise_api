@@ -204,7 +204,7 @@ def parse_docx_file(file_path: str):
 
 
 if __name__ == "__main__":
-    file_path = "../mock_docx_files/client1_ae copy.docx"
+    file_path = "mock_docx_files/client1_ae copy.docx"
 
     parsed_json = parse_docx_file(file_path)
 
