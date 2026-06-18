@@ -5,3 +5,4 @@
 
 app/services/docx_crawler/mock_docx_files/
 app/services/docx_crawler/**.json
+app/services/docx_crawler/test_run.py
