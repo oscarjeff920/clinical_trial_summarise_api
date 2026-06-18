@@ -4,7 +4,7 @@ from docx import Document
 
 from api.app import medical_docs_api
 from api.models import SummariseTablesOutput
-from services.docx_crawler.run_docx_extraction import main
+from services.docx_crawler.run_docx_extraction import run_docx_content_extraction
 
 
 @medical_docs_api.get("/")
@@ -31,4 +31,6 @@ def summarise(
         )
 
     docx_document = Document(file.file)
-    return main(docx_document, compound_1, compound_2)
+    summarised_content = run_docx_content_extraction(docx_document, compound_1, compound_2)
+
+    return summarised_content
