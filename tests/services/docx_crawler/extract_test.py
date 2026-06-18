@@ -15,9 +15,6 @@ from app.services.docx_crawler.extract.extract import (
 )
 
 
-RESOURCE = Path(__file__).parent / "resources" / "client1.docx"
-
-
 # ---------------------------------------------------------------------------
 # parse_table_title
 # ---------------------------------------------------------------------------
@@ -262,8 +259,8 @@ def test_extract_table_returns_none_for_empty_table():
 # ---------------------------------------------------------------------------
 
 
-def test_find_sae_tables_keeps_only_sae_titled_tables():
-    doc = Document(str(RESOURCE))
+def test_find_sae_tables_keeps_only_sae_titled_tables(client1_docx_path):
+    doc = Document(client1_docx_path)
     matches = find_sae_tables(doc)
     titles = [m["title"] for m in matches]
     assert len(matches) == 1
@@ -271,8 +268,8 @@ def test_find_sae_tables_keeps_only_sae_titled_tables():
     assert all("Death" not in t for t in titles)
 
 
-def test_full_pipeline_on_fixture():
-    doc = Document(str(RESOURCE))
+def test_full_pipeline_on_fixture(client1_docx_path):
+    doc = Document(client1_docx_path)
     out = extract_found_tables_into_json(find_sae_tables(doc))
     assert len(out["tables"]) == 1
     table = out["tables"][0]
