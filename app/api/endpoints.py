@@ -2,9 +2,9 @@ from fastapi import UploadFile, Form, HTTPException, File
 
 from docx import Document
 
-from api.app import medical_docs_api
-from api.models import SummariseTablesOutput
-from services.docx_crawler.run_docx_extraction import run_docx_content_extraction
+from app.api.app import medical_docs_api
+from app.api.models import SummariseTablesOutput
+from app.services.docx_crawler.run_docx_extraction import run_docx_content_extraction
 
 
 @medical_docs_api.get("/")

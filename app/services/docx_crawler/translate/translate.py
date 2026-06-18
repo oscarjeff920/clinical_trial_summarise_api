@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from services.docx_crawler.translate.config import OUTPUT_SENTENCES
+from app.services.docx_crawler.translate.config import OUTPUT_SENTENCES
 
 
 # ---- pure helpers -------------------------------------------------------

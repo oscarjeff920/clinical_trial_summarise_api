@@ -6,7 +6,7 @@ from docx.text.paragraph import Paragraph
 from docx.oxml.text.paragraph import CT_P
 from docx.oxml.table import CT_Tbl
 
-from services.docx_crawler.extract.config import (
+from app.services.docx_crawler.extract.config import (
     TOTALS_ROW_KEYWORDS,
     TOTALS_ROW_MIN_MATCHES,
     SAE_KEYWORDS,
