@@ -11,6 +11,7 @@ DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.docu
 # happy path
 # ---------------------------------------------------------------------------
 
+
 def test_summarise_happy_path_returns_200_and_expected_shape(client1_docx_bytes):
     resp = client.post(
         "/summarise",
@@ -31,7 +32,10 @@ def test_summarise_compound_matching_is_case_insensitive(client1_docx_bytes):
     resp = client.post(
         "/summarise",
         files={"file": ("client1.docx", client1_docx_bytes, DOCX_MIME)},
-        data={"compound_1": "placebo", "compound_2": "compound x"},  # wrong case on purpose
+        data={
+            "compound_1": "placebo",
+            "compound_2": "compound x",
+        },  # wrong case on purpose
     )
     assert resp.status_code == 200
 
@@ -39,6 +43,7 @@ def test_summarise_compound_matching_is_case_insensitive(client1_docx_bytes):
 # ---------------------------------------------------------------------------
 # error paths
 # ---------------------------------------------------------------------------
+
 
 def test_summarise_wrong_file_extension_returns_415():
     resp = client.post(
@@ -80,7 +85,9 @@ def test_summarise_missing_file_returns_422_validation_error():
     assert resp.status_code == 422
 
 
-def test_summarise_missing_compound_field_returns_422_validation_error(client1_docx_bytes):
+def test_summarise_missing_compound_field_returns_422_validation_error(
+    client1_docx_bytes,
+):
     resp = client.post(
         "/summarise",
         files={"file": ("client1.docx", client1_docx_bytes, DOCX_MIME)},

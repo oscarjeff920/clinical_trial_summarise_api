@@ -34,7 +34,10 @@ def summarise(
     try:
         docx_document = Document(file.file)
     except Exception as ex:
-        raise HTTPException(status_code=415, detail=f"Passed file is not a readable .docx document: {ex}")
+        raise HTTPException(
+            status_code=415,
+            detail=f"Passed file is not a readable .docx document: {ex}",
+        )
 
     try:
         summarised_content = run_docx_content_extraction(
