@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "$API_PORT:8000"  # Uses port from .env
+      - "${API_PORT:-8000}:8000"  # Uses port from .env
     environment:
       # API envs
       API_HOST: 0.0.0.0
