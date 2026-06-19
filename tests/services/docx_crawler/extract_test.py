@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from docx import Document
 from app.services.docx_crawler.extract.extract import (
     parse_table_title,
