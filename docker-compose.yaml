@@ -7,6 +7,6 @@ services:
       - "$API_PORT:8000"  # Uses port from .env
     environment:
       # API envs
-      HOST: 0.0.0.0
-      PORT: 8000
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
       ENVIRONMENT: local
