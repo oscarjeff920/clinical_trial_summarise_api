@@ -17,6 +17,17 @@ For each SAE table found in the document, the service returns:
   Non-SAE tables (demographics, fatal-AE summaries, etc.) are detected and ignored.
 
 ## Setup & running
+### Prerequisites
+
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management — install it
+first:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+(Docker is the only requirement for the containerised route below — `uv` isn't needed if
+you run via `docker compose up`. Docker can be installed from the [official website](https://docs.docker.com/desktop/))
 
 ### 1. Configuration (optional)
 
@@ -42,7 +53,9 @@ or containerised:
 docker compose up
 ```
 
-The API is then available at **http://localhost:8000/docs** (interactive Swagger UI).
+The API is served on the port from your `.env` (`API_PORT`, default `8000`), reachable at
+**http://localhost:8000** with the defaults - add `/docs` at the end to reach the interactive Swagger UI. If you
+changed `API_PORT`, use that port instead.
 
 ## API
 
