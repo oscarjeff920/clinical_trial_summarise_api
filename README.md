@@ -53,7 +53,9 @@ or containerised:
 docker compose up
 ```
 
-The API is then available at **http://localhost:8000/docs** (interactive Swagger UI).
+The API is served on the port from your `.env` (`API_PORT`, default `8000`), reachable at
+**http://localhost:8000** with the defaults - add `/docs` at the end to reach the interactive Swagger UI. If you
+changed `API_PORT`, use that port instead.
 
 ## API
 
