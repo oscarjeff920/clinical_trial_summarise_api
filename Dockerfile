@@ -13,6 +13,6 @@ COPY app ./app
 # Install the application dependencies.
 RUN uv sync --no-dev
 
-ENV PATH="/.venv/bin:$PATH"
+ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["uv", "run", "python", "-m", "app.api.local_api_run"]
+CMD ["python", "-m", "app.api.local_api_run"]
